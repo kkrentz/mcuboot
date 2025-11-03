@@ -109,6 +109,7 @@ extern "C" {
 #define IMAGE_TLV_SIG_PURE          0x25    /* Indicator that attached signature has been prepared
                                              * over image rather than its digest.
                                              */
+#define IMAGE_TLV_DICE              0x26    /* DICE data that is to be passed to the next layer */
 #define IMAGE_TLV_ENC_RSA2048       0x30    /* Key encrypted with RSA-OAEP-2048 */
 #define IMAGE_TLV_ENC_KW            0x31    /* Key encrypted with AES-KW 128 or 256*/
 #define IMAGE_TLV_ENC_EC256         0x32    /* Key encrypted with ECIES-EC256 */

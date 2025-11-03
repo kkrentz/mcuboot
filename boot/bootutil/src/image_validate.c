@@ -5,6 +5,7 @@
  * Copyright (c) 2016-2019 JUUL Labs
  * Copyright (c) 2019-2024 Arm Limited
  * Copyright (c) 2025 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Siemens AG
  *
  * Original license:
  *
@@ -179,6 +180,9 @@ static const uint16_t allowed_unprot_tlvs[] = {
      IMAGE_TLV_ED25519,
 #if defined(MCUBOOT_SIGN_PURE)
      IMAGE_TLV_SIG_PURE,
+#endif
+#ifdef MCUBOOT_DICE_ROT
+     IMAGE_TLV_DICE,
 #endif
      IMAGE_TLV_ENC_RSA2048,
      IMAGE_TLV_ENC_KW,
