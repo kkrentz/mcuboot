@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2017 Open Source Foundries Limited
 # Copyright (c) 2023-2025 Nordic Semiconductor ASA
+# Copyright (c) 2025 Siemens AG
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -36,6 +37,9 @@ if(NOT CONFIG_MBEDTLS_BUILTIN AND NOT CONFIG_BOOT_KEY_IMPORT_BYPASS_ASN)
   assert_exists(MBEDTLS_ASN1_DIR)
 endif()
 set(NRF_DIR "${MCUBOOT_DIR}/ext/nrf")
+# Path to libcoap
+set(LIBCOAP_DIR "${MCUBOOT_DIR}/ext/libcoap")
+assert_exists(LIBCOAP_DIR)
 
 if(CONFIG_BOOT_USE_NRF_CC310_BL)
 set(NRFXLIB_DIR ${ZEPHYR_BASE}/../nrfxlib)
