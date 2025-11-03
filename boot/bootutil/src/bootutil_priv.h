@@ -85,6 +85,14 @@ struct flash_area;
 #define MCUBOOT_SWAP_USING_SCRATCH 1
 #endif
 
+#ifdef MCUBOOT_DICE_L0
+#define MCUBOOT_USING_OWN_IMAGE 1
+#endif
+
+#if defined(MCUBOOT_DICE_ROT) || defined(MCUBOOT_DICE_L0)
+#define MCUBOOT_USING_DICE 1
+#endif
+
 #if defined(MCUBOOT_SWAP_USING_OFFSET)
 #define BOOT_STATUS_OP_SWAP     1
 #else
