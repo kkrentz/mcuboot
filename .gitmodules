@@ -22,3 +22,6 @@
 [submodule "ext/mbedtls-4.1.0"]
 	path = ext/mbedtls-4.1.0
 	url = https://github.com/Mbed-TLS/mbedtls.git
+[submodule "ext/libcoap"]
+	path = ext/libcoap
+	url = https://github.com/kkrentz/libcoap.git
