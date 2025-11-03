@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2018-2020 Arm Limited
  * Copyright (c) 2020 Linaro Limited
+ * Copyright (c) 2025 Siemens AG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -124,6 +125,7 @@ extern "C" {
 #define BLINFO_SECURITY_COUNTER_IMAGE_2 0x12
 #define BLINFO_SECURITY_COUNTER_IMAGE_3 0x13
 #define BLINFO_SECURITY_COUNTER_IMAGE_4 0x14
+#define BLINFO_DICE 0x15
 
 enum mcuboot_mode {
     MCUBOOT_MODE_SINGLE_SLOT,
