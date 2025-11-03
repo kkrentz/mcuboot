@@ -5,6 +5,7 @@
  * Copyright (c) 2016-2019 JUUL Labs
  * Copyright (c) 2019-2025 Arm Limited
  * Copyright (c) 2025 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Siemens AG
  *
  * Original license:
  *
@@ -38,7 +39,7 @@
 
 BOOT_LOG_MODULE_DECLARE(mcuboot);
 
-#ifndef MCUBOOT_SIGN_PURE
+#if !defined(MCUBOOT_SIGN_PURE) || defined(MCUBOOT_USING_DICE)
 /*
  * Compute SHA hash over the image.
  * (SHA384 if ECDSA-P384 is being used,
@@ -195,4 +196,4 @@ bootutil_img_hash(struct boot_loader_state *state,
 
     return rc;
 }
-#endif /* !MCUBOOT_SIGN_PURE */
+#endif /* !MCUBOOT_SIGN_PURE || MCUBOOT_USING_DICE */
