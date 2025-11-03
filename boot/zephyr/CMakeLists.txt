@@ -40,6 +40,9 @@ set(NRF_DIR "${MCUBOOT_DIR}/ext/nrf")
 # Path to libcoap
 set(LIBCOAP_DIR "${MCUBOOT_DIR}/ext/libcoap")
 assert_exists(LIBCOAP_DIR)
+# Path to uECC
+set(MICRO_ECC_DIR "${LIBCOAP_DIR}/ext/micro-ecc")
+assert_exists(MICRO_ECC_DIR)
 
 if(CONFIG_BOOT_USE_NRF_CC310_BL)
 set(NRFXLIB_DIR ${ZEPHYR_BASE}/../nrfxlib)
@@ -206,7 +209,7 @@ if(CONFIG_BOOT_SIGNATURE_TYPE_ECDSA_P256 OR CONFIG_BOOT_ENCRYPT_EC256)
     )
   endif()
   if(CONFIG_BOOT_USE_TINYCRYPT)
-    # When using ECDSA signatures, pull in our copy of the tinycrypt library.
+    # When using ECDSA signatures, pull in our copy of the tinycrypt library for hashing.
     zephyr_library_include_directories(
       ${BOOT_DIR}/zephyr/include
       ${TINYCRYPT_DIR}/include
@@ -214,11 +217,17 @@ if(CONFIG_BOOT_SIGNATURE_TYPE_ECDSA_P256 OR CONFIG_BOOT_ENCRYPT_EC256)
     zephyr_include_directories(${TINYCRYPT_DIR}/include)
 
     zephyr_library_sources(
-      ${TINYCRYPT_DIR}/source/ecc.c
-      ${TINYCRYPT_DIR}/source/ecc_dsa.c
       ${TINYCRYPT_DIR}/source/sha256.c
       ${TINYCRYPT_DIR}/source/utils.c
     )
+    if(NOT CONFIG_BOOT_USE_MICRO_ECC)
+      # When not using uECC, use TinyCrypt's fork of uECC for verifying signatures.
+      # Else, uECC takes precedence to avoid conflicts.
+      zephyr_library_sources(
+        ${TINYCRYPT_DIR}/source/ecc.c
+        ${TINYCRYPT_DIR}/source/ecc_dsa.c
+        )
+    endif()
   elseif(CONFIG_BOOT_USE_NRF_CC310_BL)
     zephyr_library_sources(${NRF_DIR}/cc310_glue.c)
     zephyr_library_include_directories(${NRF_DIR})
@@ -321,6 +330,19 @@ if(CONFIG_BOOT_ENCRYPT_EC256 AND NOT CONFIG_BOOT_ECDSA_PSA)
   zephyr_library_sources(
     ${TINYCRYPT_DIR}/source/ecc_dh.c
     )
+endif()
+
+if(CONFIG_BOOT_USE_MICRO_ECC)
+  zephyr_library_compile_definitions(
+    uECC_SUPPORTS_secp160r1=0
+    uECC_SUPPORTS_secp192r1=0
+    uECC_SUPPORTS_secp224r1=0
+    uECC_SUPPORTS_secp256r1=1
+    uECC_SUPPORTS_secp256k1=0
+    uECC_ENABLE_VLI_API=1
+    )
+  zephyr_library_include_directories(${MICRO_ECC_DIR})
+  zephyr_library_sources(${MICRO_ECC_DIR}/uECC.c)
 endif()
 
 if(CONFIG_MCUBOOT_SERIAL)
