@@ -5,6 +5,7 @@
  * Copyright (c) 2017-2019 JUUL Labs
  * Copyright (c) 2019-2021 Arm Limited
  * Copyright (c) 2024-2025 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Siemens AG
  *
  * Original license:
  *
@@ -160,7 +161,8 @@ int boot_add_shared_data(struct boot_loader_state *state, uint8_t active_slot);
  * Opens the flash areas of all images.
  *
  * @note This function opens all areas for all images, including scratch area if
- *       MCUBOOT_SWAP_USING_SCRATCH is defined.
+ *       MCUBOOT_SWAP_USING_SCRATCH is defined, as well as the bootloader's area
+ *       if MCUBOOT_USING_OWN_IMAGE is defined.
  *
  * @param state Bootloader state.
  *
@@ -172,7 +174,8 @@ int boot_open_all_flash_areas(struct boot_loader_state *state);
  * Closes the flash areas of all images.
  *
  * @note This function closes all areas for all images, including scratch area if
- *       MCUBOOT_SWAP_USING_SCRATCH is defined.
+ *       MCUBOOT_SWAP_USING_SCRATCH is defined, as well as the bootloader's area
+ *       if MCUBOOT_USING_OWN_IMAGE is defined.
  *
  * @param state Bootloader state.
  */
