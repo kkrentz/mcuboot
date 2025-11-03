@@ -326,6 +326,25 @@ if(CONFIG_BOOT_USE_MICRO_ECC)
   zephyr_sources(${MICRO_ECC_DIR}/uECC.c)
 endif()
 
+if(CONFIG_BOOT_DICE_ROT)
+  zephyr_include_directories(${LIBCOAP_DIR}/include)
+  zephyr_sources(
+    ${BOOT_DIR}/bootutil/src/dice_rot.c
+    ${BOOT_DIR}/bootutil/src/dice_tci.c
+    )
+endif()
+
+if(CONFIG_BOOT_DICE_L0)
+  zephyr_include_directories(${LIBCOAP_DIR}/include)
+  zephyr_sources(
+    ${BOOT_DIR}/bootutil/src/dice_l0.c
+    ${BOOT_DIR}/bootutil/src/dice_rng.c
+    ${BOOT_DIR}/bootutil/src/dice_tci.c
+    ${LIBCOAP_DIR}/src/oscore-ng/oscore_ng_cbor.c
+    ${LIBCOAP_DIR}/src/oscore-ng/oscore_ng_tiny_dice.c
+    )
+endif()
+
 if(CONFIG_MCUBOOT_SERIAL)
   zephyr_sources(
     ${BOOT_DIR}/zephyr/serial_adapter.c
