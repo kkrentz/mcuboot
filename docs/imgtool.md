@@ -63,6 +63,19 @@ primary slot and adds a header and trailer that the bootloader is expecting:
                                       (<raw_uuid>|<domain_name)>
       --cid TEXT                      Unique image class identifier, format:
                                       (<raw_uuid>|<image_class_name>)
+      --dice <cbor_hex_string>        Externally assembled contents of the DICE
+                                      TLV. This TLV either contains a CBOR
+                                      sequence of Cert_L0 and, in the case of
+                                      using TinyDICE, s_L0, or the subject of
+                                      Cert_L1. The subject may either be a CBOR
+                                      byte string or a CBOR text string.
+      --protect-dice                  Places the DICE TLV in the protected TLV
+                                      area. Only set this flag for configuring the
+                                      subject of Cert_L1. By contrast, when using
+                                      the DICE TLV to preload a Cert_L0, Cert_L1
+                                      inherits the subject of Cert_L0 anyway and
+                                      the DICE TLV must be an unprotected TLV to
+                                      preserve the certified DeviceID.
       --vector-to-sign [payload|digest]
                                       send to OUTFILE the payload or payloads
                                       digest instead of complied image. These data

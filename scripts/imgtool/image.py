@@ -1,6 +1,7 @@
 # Copyright 2018 Nordic Semiconductor ASA
 # Copyright 2017-2020 Linaro Limited
 # Copyright 2019-2024 Arm Limited
+# Copyright 2025 Siemens AG
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -79,6 +80,7 @@ TLV_VALUES = {
         'RSA3072': 0x23,
         'ED25519': 0x24,
         'SIG_PURE': 0x25,
+        'DICE': 0x26,
         'ENCRSA2048': 0x30,
         'ENCKW': 0x31,
         'ENCEC256': 0x32,
@@ -517,7 +519,7 @@ class Image:
                compression_type=None, encrypt_keylen=128, clear=False,
                fixed_sig=None, pub_key=None, vector_to_sign=None,
                user_sha='auto', hmac_sha='auto', is_pure=False, keep_comp_size=False,
-               dont_encrypt=False):
+               dont_encrypt=False, dice=None, protect_dice=False):
         self.enckey = enckey
 
         # key decides on sha, then pub_key; of both are none default is used
@@ -594,6 +596,8 @@ class Image:
         if compression_tlvs is not None:
             for value in compression_tlvs.values():
                 protected_tlv_size += TLV_SIZE + len(value)
+        if protect_dice and dice is not None:
+            protected_tlv_size += TLV_SIZE + len(dice)
         if custom_tlvs is not None:
             for value in custom_tlvs.values():
                 protected_tlv_size += TLV_SIZE + len(value)
@@ -672,6 +676,9 @@ class Image:
                 payload = struct.pack(e + '16s', cid)
                 prot_tlv.add('UUID_CID', payload)
 
+            if protect_dice and dice is not None:
+                prot_tlv.add('DICE', dice)
+
             if custom_tlvs is not None:
                 for tag, value in custom_tlvs.items():
                     prot_tlv.add(tag, value)
@@ -737,6 +744,9 @@ class Image:
                 raise click.UsageError(
                     "Can not sign using key and provide fixed-signature at the same time"
                 )
+
+        if not protect_dice and dice is not None:
+            tlv.add('DICE', dice)
 
         # At this point the image was hashed + signed, we can remove the
         # protected TLVs from the payload (will be re-added later)

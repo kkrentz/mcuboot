@@ -2,6 +2,7 @@
 #
 # Copyright 2017-2020 Linaro Limited
 # Copyright 2019-2023 Arm Limited
+# Copyright 2025 Siemens AG
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -450,13 +451,24 @@ class BasedIntParamType(click.ParamType):
               help='Unique vendor identifier, format: (<raw_uuid>|<domain_name)>')
 @click.option('--cid', default=None, required=False,
               help='Unique image class identifier, format: (<raw_uuid>|<image_class_name>)')
+@click.option('--dice', metavar='<cbor_hex_string>',
+              help='Externally assembled contents of the DICE TLV. This TLV '
+              'either contains a CBOR sequence of Cert_L0 and, in the case of '
+              'using TinyDICE, s_L0, or the subject of Cert_L1. The subject '
+              'may either be a CBOR byte string or a CBOR text string.')
+@click.option('--protect-dice', default=False, is_flag=True,
+              help='Places the DICE TLV in the protected TLV area. Only set '
+              'this flag for configuring the subject of Cert_L1. By contrast, '
+              'when using the DICE TLV to preload a Cert_L0, Cert_L1 inherits '
+              'the subject of Cert_L0 anyway and the DICE TLV must be an '
+              'unprotected TLV to preserve the certified DeviceID.')
 def sign(key, public_key_format, align, version, pad_sig, header_size,
          pad_header, slot_size, pad, confirm, test, max_sectors, overwrite_only,
          endian, encrypt_keylen, encrypt, compression, infile, outfile,
          dependencies, load_addr, hex_addr, erased_val, save_enctlv,
          security_counter, boot_record, custom_tlv, rom_fixed, max_align,
          clear, fix_sig, fix_sig_pubkey, sig_out, user_sha, hmac_sha, is_pure,
-         vector_to_sign, non_bootable, vid, cid):
+         vector_to_sign, non_bootable, vid, cid, dice, protect_dice):
 
     if confirm or test:
         # Confirmed but non-padded images don't make much sense, because
@@ -522,6 +534,16 @@ def sign(key, public_key_format, align, version, pad_sig, header_size,
             'value': raw_signature
         }
 
+    if dice:
+        if len(dice) % 2:
+            raise click.UsageError('the --dice hex string has an odd length.')
+        if dice.startswith('0x'):
+            dice_bytes = bytes.fromhex(dice[2:])
+        else:
+            dice_bytes = bytes.fromhex(dice)
+    else:
+        dice_bytes = None
+
     if is_pure and user_sha != 'auto':
         raise click.UsageError(
             'Pure signatures, currently, enforces preferred hash algorithm, '
@@ -531,7 +553,8 @@ def sign(key, public_key_format, align, version, pad_sig, header_size,
         img.create(key, public_key_format, enckey, dependencies, boot_record,
                custom_tlvs, compression_tlvs, None, int(encrypt_keylen), clear,
                baked_signature, pub_key, vector_to_sign, user_sha=user_sha,
-               hmac_sha=hmac_sha, is_pure=is_pure, keep_comp_size=False, dont_encrypt=True)
+               hmac_sha=hmac_sha, is_pure=is_pure, keep_comp_size=False,
+               dont_encrypt=True, dice=dice_bytes, protect_dice=protect_dice)
         compressed_img = image.Image(version=decode_version(version),
                   header_size=header_size, pad_header=pad_header,
                   pad=pad, confirm=confirm, align=int(align),
@@ -577,13 +600,15 @@ def sign(key, public_key_format, align, version, pad_sig, header_size,
                dependencies, boot_record, custom_tlvs, compression_tlvs,
                compression, int(encrypt_keylen), clear, baked_signature,
                pub_key, vector_to_sign, user_sha=user_sha, hmac_sha=hmac_sha,
-               is_pure=is_pure, keep_comp_size=keep_comp_size)
+               is_pure=is_pure, keep_comp_size=keep_comp_size, dice=dice_bytes,
+               protect_dice=protect_dice)
             img = compressed_img
     else:
         img.create(key, public_key_format, enckey, dependencies, boot_record,
                custom_tlvs, compression_tlvs, None, int(encrypt_keylen), clear,
                baked_signature, pub_key, vector_to_sign, user_sha=user_sha,
-               hmac_sha=hmac_sha, is_pure=is_pure)
+               hmac_sha=hmac_sha, is_pure=is_pure, dice=dice_bytes,
+               protect_dice=protect_dice)
     img.save(outfile, hex_addr)
     if sig_out is not None:
         new_signature = img.get_signature()
