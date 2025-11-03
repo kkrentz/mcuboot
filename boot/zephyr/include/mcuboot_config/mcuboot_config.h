@@ -3,6 +3,7 @@
  * Copyright (c) 2019-2020 Arm Limited
  * Copyright (c) 2019-2020 Linaro Limited
  * Copyright (c) 2023 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Siemens AG
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -252,6 +253,14 @@
 
 #ifdef CONFIG_BOOT_SHARE_DATA
 #define MCUBOOT_DATA_SHARING
+#endif
+
+#ifdef CONFIG_BOOT_DICE_ROT
+#define MCUBOOT_DICE_ROT
+#endif
+
+#ifdef CONFIG_BOOT_DICE_L0
+#define MCUBOOT_DICE_L0
 #endif
 
 #ifdef CONFIG_BOOT_SHARE_BACKEND_RETENTION

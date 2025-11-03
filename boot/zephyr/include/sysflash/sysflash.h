@@ -24,7 +24,11 @@
 #if !defined(CONFIG_SINGLE_APPLICATION_SLOT) && !defined(CONFIG_MCUBOOT_BOOTLOADER_MODE_SINGLE_APP)
 
 /* Each pair of slots is separated by , and there is no terminating character */
+#if defined(CONFIG_BOOT_DICE_ROT)
+#define FLASH_AREA_IMAGE_0_SLOTS    mcuboot0_partition, mcuboot1_partition
+#else /* CONFIG_BOOT_DICE_ROT */
 #define FLASH_AREA_IMAGE_0_SLOTS    slot0_partition, slot1_partition
+#endif /* CONFIG_BOOT_DICE_ROT */
 #define FLASH_AREA_IMAGE_1_SLOTS    slot2_partition, slot3_partition
 #define FLASH_AREA_IMAGE_2_SLOTS    slot4_partition, slot5_partition
 #define FLASH_AREA_IMAGE_3_SLOTS    slot6_partition, slot7_partition
@@ -101,16 +105,29 @@ static inline uint32_t __flash_area_ids_for_slot(int img, int slot)
 #define FLASH_AREA_IMAGE_SECONDARY(x) __flash_area_ids_for_slot(x, 1)
 
 #if !defined(CONFIG_BOOT_SWAP_USING_MOVE) && !defined(CONFIG_BOOT_SWAP_USING_OFFSET)
+#if defined(CONFIG_BOOT_DICE_ROT)
+#define FLASH_AREA_IMAGE_SCRATCH    FIXED_PARTITION_ID(scratch2_partition)
+#else /* CONFIG_BOOT_DICE_ROT */
 #define FLASH_AREA_IMAGE_SCRATCH    FIXED_PARTITION_ID(scratch_partition)
+#endif /* CONFIG_BOOT_DICE_ROT */
 #endif
 
 #else /* !CONFIG_SINGLE_APPLICATION_SLOT && !CONFIG_MCUBOOT_BOOTLOADER_MODE_SINGLE_APP */
 
+#if defined(CONFIG_BOOT_DICE_ROT)
+#define FLASH_AREA_IMAGE_PRIMARY(x) FIXED_PARTITION_ID(mcuboot0_partition)
+#define FLASH_AREA_IMAGE_SECONDARY(x) FIXED_PARTITION_ID(mcuboot0_partition)
+#else /* CONFIG_BOOT_DICE_ROT */
 #define FLASH_AREA_IMAGE_PRIMARY(x)	FIXED_PARTITION_ID(slot0_partition)
 #define FLASH_AREA_IMAGE_SECONDARY(x)	FIXED_PARTITION_ID(slot0_partition)
+#endif /* CONFIG_BOOT_DICE_ROT */
 
 #endif /* CONFIG_SINGLE_APPLICATION_SLOT */
 
+#if defined(CONFIG_BOOT_DICE_L0)
+#define FLASH_AREA_BOOTLOADER       FIXED_PARTITION_ID(mcuboot0_partition)
+#else
 #define FLASH_AREA_BOOTLOADER       boot_partition
+#endif
 
 #endif /* __SYSFLASH_H__ */
