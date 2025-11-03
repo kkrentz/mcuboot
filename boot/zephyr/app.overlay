@@ -1,3 +1,6 @@
+/*
+ * Select "&boot_partition" for the RoT and "&mcuboot0_partition" for Layer 0.
+ */ 
 / {
 	chosen {
 		zephyr,code-partition = &boot_partition;
