@@ -4,6 +4,7 @@
  * Copyright (c) 2021-2023 Nordic Semiconductor ASA
  * Copyright (c) 2025 Aerlync Labs Inc.
  * Copyright (c) 2025 Siemens Mobility GmbH
+ * Copyright (c) 2025 Siemens AG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +36,12 @@
 
 #if defined(CONFIG_CPU_CORTEX_M)
 #include <cmsis_core.h>
+#endif
+
+#if defined(CONFIG_BOOT_USE_MICRO_ECC)
+#include "bootutil/crypto/sha.h"
+#include "uECC.h"
+#include <zephyr/drivers/entropy.h>
 #endif
 
 #include "io/io.h"
@@ -494,6 +501,24 @@ static void boot_serial_enter()
 }
 #endif
 
+#if defined(CONFIG_BOOT_USE_MICRO_ECC)
+static uint8_t micro_ecc_rng_seed[BOOTUTIL_CRYPTO_SHA256_DIGEST_SIZE];
+
+static int
+micro_ecc_rng(uint8_t *dest, unsigned size)
+{
+    static uint32_t counter;
+    if (bootutil_sha_hkdf_expand(micro_ecc_rng_seed, sizeof(micro_ecc_rng_seed),
+                                 (const uint8_t *)&counter, sizeof(counter),
+                                 dest, size)) {
+        BOOT_LOG_ERR("bootutil_hkdf_sha256_expand failed");
+        return 0;
+    }
+    counter++;
+    return 1;
+}
+#endif
+
 int main(void)
 {
     struct boot_rsp rsp;
@@ -600,6 +625,18 @@ int main(void)
 #ifdef CONFIG_MCUBOOT_INDICATION_LED
     io_led_set(1);
 #endif
+#endif
+
+#ifdef CONFIG_BOOT_USE_MICRO_ECC
+    const struct device *rng_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_entropy));
+
+    if (rng_dev && device_is_ready(rng_dev)) {
+        if (entropy_get_entropy(rng_dev, micro_ecc_rng_seed, sizeof(micro_ecc_rng_seed))) {
+            BOOT_LOG_ERR("entropy_get_entropy failed");
+        } else {
+            uECC_set_rng(micro_ecc_rng);
+        }
+    }
 #endif
 
     BOOT_HOOK_GO_CALL_FIH(boot_go_hook, FIH_BOOT_HOOK_REGULAR, fih_rc, &rsp);

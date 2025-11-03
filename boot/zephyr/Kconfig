@@ -41,6 +41,12 @@ config BOOT_USE_TINYCRYPT
 	help
 	  Use TinyCrypt for crypto primitives.
 
+config BOOT_USE_MICRO_ECC
+    bool
+    # Hidden option
+    select ENTROPY_GENERATOR
+	select SOMETHING_USES_HKDF
+
 config BOOT_USE_CC310
 	bool
 	# Hidden option
