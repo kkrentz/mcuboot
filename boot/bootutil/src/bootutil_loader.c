@@ -5,6 +5,7 @@
  * Copyright (c) 2016-2019 JUUL Labs
  * Copyright (c) 2019-2023 Arm Limited
  * Copyright (c) 2024-2025 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Siemens AG
  *
  * Original license:
  *
@@ -33,6 +34,7 @@
  */
 
 #include "bootutil_loader.h"
+#include "bootutil_priv.h"
 #include "bootutil/boot_record.h"
 #include "bootutil/boot_hooks.h"
 #ifdef MCUBOOT_ENC_IMAGES
@@ -131,6 +133,13 @@ boot_read_image_headers(struct boot_loader_state *state, bool require_all, struc
 {
     int rc;
     int i;
+
+#if MCUBOOT_USING_OWN_IMAGE
+    rc = flash_area_read(state->bootloader.area, 0, &state->bootloader.hdr, sizeof(state->bootloader.hdr));
+    if (rc != 0) {
+        LOG_WRN("Failed to read header of bootloader's image: %d\n", rc);
+    }
+#endif
 
     for (i = 0; i < BOOT_NUM_SLOTS; i++) {
         rc = BOOT_HOOK_CALL(boot_read_image_header_hook, BOOT_HOOK_REGULAR,
@@ -348,6 +357,15 @@ boot_open_all_flash_areas(struct boot_loader_state *state)
     }
 #endif
 
+#if MCUBOOT_USING_OWN_IMAGE
+    rc = flash_area_open(FLASH_AREA_BOOTLOADER, &state->bootloader.area);
+
+    if (rc != 0) {
+        BOOT_LOG_ERR("Failed to open bootloader's flash area: %d", rc);
+        goto out;
+    }
+#endif
+
 out:
     if (rc != 0) {
         boot_close_all_flash_areas(state);
@@ -360,6 +378,12 @@ void
 boot_close_all_flash_areas(struct boot_loader_state *state)
 {
     uint32_t slot;
+
+#if MCUBOOT_USING_OWN_IMAGE
+    if (state->bootloader.area) {
+        flash_area_close(state->bootloader.area);
+    }
+#endif
 
 #if MCUBOOT_SWAP_USING_SCRATCH
     if (BOOT_SCRATCH_AREA(state) != NULL) {
