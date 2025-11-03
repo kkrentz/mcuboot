@@ -881,6 +881,34 @@ menuconfig MEASURED_BOOT
 	  BOOT_SHARE_BACKEND_RETENTION for details on using the retention
 	  subsystem as a backend.
 
+config BOOT_DICE
+	bool
+	# Hidden option
+	select MCUBOOT_CLEANUP_ARM_CORE # erase any secrets from caches
+	select MCUBOOT_CLEANUP_RAM # erase any secrets from RAM
+	select BOOT_SOMETHING_USES_HKDF
+	help
+	  Hidden option for general settings of DICE.
+
+choice BOOT_DICE_LAYER
+	prompt "DICE"
+	default BOOT_DICE_OFF
+
+config BOOT_DICE_OFF
+	bool "Disable DICE"
+
+config BOOT_DICE_ROT
+	bool "Enable DICE root of trust"
+	select BOOT_DICE
+
+config BOOT_DICE_L0
+	bool "Enable DICE Layer 0"
+	select BOOT_DICE
+	select BOOTLOADER_MCUBOOT
+	select BOOT_USE_MICRO_ECC
+
+endchoice
+
 config MEASURED_BOOT_MAX_CBOR_SIZE
 	int "Maximum CBOR size of boot state/measurements"
 	default 64
