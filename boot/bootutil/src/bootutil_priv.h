@@ -4,6 +4,7 @@
  * Copyright (c) 2017-2020 Linaro LTD
  * Copyright (c) 2017-2019 JUUL Labs
  * Copyright (c) 2019-2021 Arm Limited
+ * Copyright (c) 2025 Siemens AG
  *
  * Original license:
  *
@@ -236,6 +237,15 @@ struct boot_loader_state {
     } scratch;
 #endif
 
+#if MCUBOOT_USING_OWN_IMAGE
+    struct {
+        struct image_header hdr;
+        const struct flash_area *area;
+        boot_sector_t *sectors;
+        uint32_t num_sectors;
+    } bootloader;
+#endif
+
     uint8_t swap_type[BOOT_IMAGE_NUMBER];
     uint32_t write_sz[BOOT_IMAGE_NUMBER];
 
@@ -278,6 +288,9 @@ struct boot_sector_buffer {
     boot_sector_t secondary[BOOT_IMAGE_NUMBER][BOOT_MAX_IMG_SECTORS];
 #if MCUBOOT_SWAP_USING_SCRATCH
     boot_sector_t scratch[BOOT_MAX_IMG_SECTORS];
+#endif
+#if MCUBOOT_USING_OWN_IMAGE
+    boot_sector_t bootloader[BOOT_MAX_IMG_SECTORS];
 #endif
 };
 

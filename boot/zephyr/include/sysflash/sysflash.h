@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023-2024 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Siemens AG
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -109,5 +110,7 @@ static inline uint32_t __flash_area_ids_for_slot(int img, int slot)
 #define FLASH_AREA_IMAGE_SECONDARY(x)	FIXED_PARTITION_ID(slot0_partition)
 
 #endif /* CONFIG_SINGLE_APPLICATION_SLOT */
+
+#define FLASH_AREA_BOOTLOADER       boot_partition
 
 #endif /* __SYSFLASH_H__ */

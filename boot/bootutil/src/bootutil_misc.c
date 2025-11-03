@@ -5,6 +5,7 @@
  * Copyright (c) 2016-2019 JUUL Labs
  * Copyright (c) 2019-2020 Arm Limited
  * Copyright (c) 2025 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Siemens AG
  *
  * Original license:
  *
@@ -455,6 +456,11 @@ boot_initialize_area(struct boot_loader_state *state, int flash_area)
         out_num_sectors = &state->scratch.num_sectors;
 #endif
 #endif
+#if MCUBOOT_USING_OWN_IMAGE
+    } else if (flash_area == FLASH_AREA_BOOTLOADER) {
+        out_sectors = state->bootloader.sectors;
+        out_num_sectors = &state->bootloader.num_sectors;
+#endif
     } else {
         return BOOT_EFLASH;
     }
@@ -516,6 +522,9 @@ boot_read_sectors(struct boot_loader_state *state, struct boot_sector_buffer *se
     state->scratch.sectors = sectors->scratch;
 #endif
 #endif
+#if MCUBOOT_USING_OWN_IMAGE
+    state->bootloader.sectors = sectors->bootloader;
+#endif
 
     rc = boot_initialize_area(state, FLASH_AREA_IMAGE_PRIMARY(image_index));
     if (rc != 0) {
@@ -535,6 +544,13 @@ boot_read_sectors(struct boot_loader_state *state, struct boot_sector_buffer *se
         return BOOT_EFLASH;
     }
 #endif
+#endif
+
+#if MCUBOOT_USING_OWN_IMAGE
+    rc = boot_initialize_area(state, FLASH_AREA_BOOTLOADER);
+    if (rc != 0) {
+        return BOOT_EFLASH;
+    }
 #endif
 
     BOOT_WRITE_SZ(state) = boot_write_sz(state);
