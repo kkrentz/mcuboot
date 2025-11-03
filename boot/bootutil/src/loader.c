@@ -5,6 +5,7 @@
  * Copyright (c) 2016-2019 JUUL Labs
  * Copyright (c) 2019-2023 Arm Limited
  * Copyright (c) 2024-2025 Nordic Semiconductor ASA
+ * Copyright (c) 2025 Siemens AG
  *
  * Original license:
  *
@@ -39,6 +40,8 @@
 #include "flash_map_backend/flash_map_backend.h"
 #include "bootutil/bootutil.h"
 #include "bootutil/bootutil_public.h"
+#include "bootutil/dice_rot.h"
+#include "bootutil/dice_l0.h"
 #include "bootutil/image.h"
 #include "bootutil_priv.h"
 #include "swap_priv.h"
@@ -1931,6 +1934,18 @@ context_boot_go(struct boot_loader_state *state, struct boot_rsp *rsp)
             FIH_SET(fih_rc, FIH_FAILURE);
             goto out;
         }
+
+#ifdef MCUBOOT_USING_DICE
+#ifdef MCUBOOT_DICE_ROT
+        rc = dice_rot_boot(state);
+#else /* MCUBOOT_DICE_ROT */
+        rc = dice_l0_boot(state);
+#endif /* MCUBOOT_DICE_ROT */
+        if (rc != 0) {
+            FIH_SET(fih_rc, FIH_FAILURE);
+            goto out;
+        }
+#endif /* MCUBOOT_DICE_ROT || MCUBOOT_DICE_L0 */
 
         rc = boot_add_shared_data(state, BOOT_SLOT_PRIMARY);
         if (rc != 0) {
