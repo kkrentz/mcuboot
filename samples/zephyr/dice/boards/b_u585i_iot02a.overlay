@@ -1,0 +1,68 @@
+/*
+ * Copyright (c) 2025 Siemens AG
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * Configure an SRAM region for handing over data to the next boot layer.
+ * See also:
+ * - zephyr/doc/services/retention/blinfo.rst
+ * - Section 3.5 of https://www.st.com/resource/en/datasheet/stm32u585ai.pdf
+ */
+/ {
+	memory@28003000 {
+		compatible = "zephyr,memory-region", "mmio-sram";
+		reg = <0x28003000 DT_SIZE_K(4)>;
+		zephyr,memory-region = "RetainedMem";
+		status = "okay";
+
+		retainedmem {
+			compatible = "zephyr,retained-ram";
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			boot_info0: boot_info@0 {
+				compatible = "zephyr,retention";
+				status = "okay";
+				reg = <0x0 DT_SIZE_K(4)>;
+			};
+		};
+	};
+
+	chosen {
+		zephyr,bootloader-info = &boot_info0;
+	};
+};
+&sram1 {
+	reg = <0x28000000 DT_SIZE_K(12)>;
+};
+
+/*
+ * Allow for cascading two instances of MCUboot. The first-stage MCUboot
+ * resides in "boot_partition". This one is not updateable. The second one
+ * resides in "mcuboot0_partition". That one is updateable.
+ */
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		mcuboot0_partition: partition@100000 {
+			label = "mcuboot-0";
+			reg = <0x00100000 DT_SIZE_K(128)>;
+		};
+
+		mcuboot1_partition: partition@120000 {
+			label = "mcuboot-1";
+			reg = <0x00120000 DT_SIZE_K(128)>;
+		};
+
+		scratch2_partition: partition@140000 {
+			label = "scratch-2";
+			reg = <0x00140000 DT_SIZE_K(64)>;
+		};
+	};
+};
