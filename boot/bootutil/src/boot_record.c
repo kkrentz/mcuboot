@@ -2,6 +2,7 @@
  * Copyright (c) 2018-2023 Arm Limited
  * Copyright (c) 2020 Linaro Limited
  * Copyright (c) 2023, Nordic Semiconductor ASA
+ * Copyright (c) 2025, Siemens AG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -397,3 +398,37 @@ int boot_save_shared_data(const struct image_header *hdr, const struct flash_are
     return rc;
 }
 #endif /* MCUBOOT_DATA_SHARING_BOOTINFO */
+
+#ifdef MCUBOOT_DICE_L0
+uint16_t
+boot_load_shared_data(uint8_t major_type, uint16_t minor_type,
+                      uint8_t *buffer, size_t buffer_len)
+{
+    struct shared_boot_data *boot_data;
+    uintptr_t tlv_end, offset;
+    struct shared_data_tlv_entry tlv_entry;
+
+    /* Read header of shared data */
+    boot_data = (struct shared_boot_data *)MCUBOOT_SHARED_DATA_BASE;
+
+    /* Iterate over TLVs */
+    offset = MCUBOOT_SHARED_DATA_BASE + sizeof(*boot_data);
+    tlv_end = MCUBOOT_SHARED_DATA_BASE + boot_data->header.tlv_tot_len;
+    while (offset < tlv_end) {
+        /* Copy TLV header to avoid unaligned access */
+        memcpy(&tlv_entry, (const void *)offset, sizeof(tlv_entry));
+        offset += sizeof(tlv_entry);
+        if ((GET_MAJOR(tlv_entry.tlv_type) == major_type) &&
+            (GET_MINOR(tlv_entry.tlv_type) == minor_type)) {
+            if (buffer_len < tlv_entry.tlv_len) {
+                /* buffer is too small */
+                return UINT16_MAX;
+            }
+            memcpy(buffer, (const void *)offset, tlv_entry.tlv_len);
+            return tlv_entry.tlv_len;
+        }
+        offset += tlv_entry.tlv_len;
+    }
+    return UINT16_MAX;
+}
+#endif /* MCUBOOT_DICE_L0 */

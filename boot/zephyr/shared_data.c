@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2023, Nordic Semiconductor ASA
+ * Copyright (c) 2025, Siemens AG
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -121,4 +122,52 @@ int boot_add_data_to_shared_area(uint8_t        major_type,
     }
 
     return SHARED_MEMORY_OK;
+}
+
+uint16_t
+boot_load_shared_data(uint8_t major_type, uint16_t minor_type,
+                      uint8_t *const buffer, size_t buffer_len)
+{
+    int rc;
+    struct shared_data_tlv_header header;
+    uintptr_t offset;
+    struct shared_data_tlv_entry tlv_entry;
+
+    /* Read header of shared data */
+    rc = retention_read(bootloader_info_dev, 0,
+                        (void *)&header, sizeof(header));
+    if (rc) {
+        LOG_ERR("Failed to read header of shared data: %d", rc);
+        return UINT16_MAX;
+    }
+
+    /* Iterate over TLVs */
+    offset = sizeof(header);
+    while (offset < header.tlv_tot_len) {
+        /* Create local copy to avoid unaligned access */
+        rc = retention_read(bootloader_info_dev, offset,
+                            (void *)&tlv_entry, sizeof(tlv_entry));
+        if (rc) {
+            LOG_ERR("Failed to read next TLV header: %d", rc);
+            return UINT16_MAX;
+        }
+
+        offset += SHARED_DATA_ENTRY_HEADER_SIZE;
+        if ((GET_MAJOR(tlv_entry.tlv_type) == major_type) &&
+            (GET_MINOR(tlv_entry.tlv_type) == minor_type)) {
+            if (buffer_len < tlv_entry.tlv_len) {
+                LOG_ERR("Buffer is smaller than TLV data");
+                return UINT16_MAX;
+            }
+            rc = retention_read(bootloader_info_dev, offset,
+                                (void *)buffer, tlv_entry.tlv_len);
+            if (rc) {
+                LOG_ERR("Failed to read TLV's data: %d", rc);
+                return UINT16_MAX;
+            }
+            return tlv_entry.tlv_len;
+        }
+        offset += tlv_entry.tlv_len;
+    }
+    return UINT16_MAX;
 }
