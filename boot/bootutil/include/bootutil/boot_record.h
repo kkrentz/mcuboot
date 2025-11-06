@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2018-2021 Arm Limited
+ * Copyright (c) 2025 Siemens AG
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +82,19 @@ int boot_save_shared_data(const struct image_header *hdr,
                           const struct flash_area *fap,
                           const uint8_t active_slot,
                           const struct image_max_size *max_app_sizes);
+
+/**
+ * Loads a TLV's data from shared memory.
+ *
+ * @param[in] major_type The TLV's major type.
+ * @param[in] minor_type The TLV's minor type.
+ * @param[in,out] buffer Pointer to where to store the TLV's data.
+ * @param[in] buffer_len Size of @c buffer.
+ *
+ * @return               Size of the TLV's data on success; else @c UINT16_MAX.
+ */
+uint16_t boot_load_shared_data(uint8_t major_type, uint16_t minor_type,
+                               uint8_t *buffer, size_t buffer_len);
 
 #ifdef __cplusplus
 }
